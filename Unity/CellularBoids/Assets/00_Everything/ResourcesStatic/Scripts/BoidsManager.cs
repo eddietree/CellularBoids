@@ -9,7 +9,7 @@ using UnityEngine.Jobs;
 public class BoidsManager : MonoBehaviour
 {
     const int NumCells = 512;
-    const int NumGroups = 6;
+    const int NumGroups = 8;
 
     public GameObject PfbCell; // prototype
 
@@ -51,10 +51,14 @@ public class BoidsManager : MonoBehaviour
             Vector3 currPos = position[i];
             int currGroupIndex = groupIndex[i];
 
+            const float forceCoeffAttract = 0.2f;
+            const float mass = 0.5f;
             float radiusMin = 0.2f; // TODO!!! use ball radius
             float radiusMax = 10f; // TODO!!! use ball radius
             float radiusMinSqr = radiusMin * radiusMin;
             float radiusMaxSqr = radiusMax * radiusMax;
+
+            Vector3 forceAccum = Vector3.zero;
 
             // TODO: optimize only the cells nearby
             for (int j = 0; j < NumCells; ++j)
@@ -70,31 +74,27 @@ public class BoidsManager : MonoBehaviour
                 Vector3 dirToOtherPosNorm = dirToOtherPos.normalized;
                 float distToOtherPosSqr = Vector3.Dot(dirToOtherPos, dirToOtherPos);
 
-                if (distToOtherPosSqr < radiusMinSqr) // repel
-                {
-                    currVel += -dirToOtherPosNorm * 0.4f;
-                }
-                else if (distToOtherPosSqr < radiusMax)
-                {
-                    const float forceCoeffAttract = 0.002f;
+                // repulsion
+                forceAccum -= dirToOtherPosNorm * Mathf.Exp(-30f * distToOtherPosSqr);
 
-                    float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
-
-                    
-                    Vector3 velocityApplied = dirToOtherPosNorm * cellularForce * forceCoeffAttract;
-                    currVel += velocityApplied;
-
-
-                    // accum forces
-
-                }
-
+                // cellular attraction?
+                float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
+                forceAccum += cellularForce * dirToOtherPosNorm * Mathf.Exp(-1f * distToOtherPosSqr) * forceCoeffAttract;
             }
+
+            // dist from edge
+            float edgeRadius = 4f;
+            float distFromEdge = Mathf.Max(0,edgeRadius - currPos.magnitude);
+            forceAccum += -currPos.normalized * Mathf.Exp(-5f * distFromEdge);
+
 
             // if outside box, reflect
 
 
-            currVel *= 0.99f;
+            Vector3 accel = forceAccum / mass;
+
+            currVel += accel * deltaTime;
+            currVel *= 0.9f;
 
             velocity[i] = currVel;
         }
