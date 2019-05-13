@@ -17,6 +17,7 @@ public class BoidsManager : MonoBehaviour
     TransformAccessArray _cellTfmAccessArray;
     GameObject [] _cellObjs;
     MeshRenderer[] _cellRenderers;
+    MaterialPropertyBlock[] _cellMatProperyBlock;
 
     NativeArray<int> _cellGroupIndex;
     NativeArray<Vector3> _cellPositions;
@@ -114,6 +115,7 @@ public class BoidsManager : MonoBehaviour
         _cellObjs = new GameObject[NumCells];
         _cellTfms = new Transform[NumCells];
         _cellRenderers = new MeshRenderer[NumCells];
+        _cellMatProperyBlock = new MaterialPropertyBlock[NumCells];
 
         _cellGroupIndex = new NativeArray<int>(NumCells, Allocator.Persistent);
         _cellVelocities = new NativeArray<Vector3>(NumCells, Allocator.Persistent);
@@ -132,9 +134,16 @@ public class BoidsManager : MonoBehaviour
             _cellTfms[i] = newCell.transform;
             _cellGroupIndex[i] = newCellGroupIndex;
             _cellVelocities[i] = Vector3.up;
-            _cellRenderers[i] = newCell.GetComponent<MeshRenderer>();
 
-            //newCell Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 1f, 1f);
+            // rendering
+            var renderer = newCell.GetComponent<MeshRenderer>();
+            MaterialPropertyBlock materialBlock;
+            renderer.GetPropertyBlock(materialBlock = new MaterialPropertyBlock());
+            _cellRenderers[i] = renderer;
+            _cellMatProperyBlock[i] = materialBlock;
+
+            materialBlock.SetColor("_Color", Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 1f, 1f));
+            renderer.SetPropertyBlock(materialBlock);
         }
         _cellTfmAccessArray = new TransformAccessArray(_cellTfms);
 
