@@ -9,7 +9,7 @@ using UnityEngine.Jobs;
 public class BoidsManager : MonoBehaviour
 {
     const int NumCells = 512;
-    const int NumGroups = 4;
+    const int NumGroups = 6;
 
     public GameObject PfbCell; // prototype
 
@@ -191,8 +191,13 @@ public class BoidsManager : MonoBehaviour
             _cellRenderers[i] = renderer;
             _cellMatProperyBlock[i] = materialBlock;
 
-            materialBlock.SetColor("_Color", Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 1f, 1f));
+            var color = Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 1f, 1f);
+            materialBlock.SetColor("_Color", color);
             renderer.SetPropertyBlock(materialBlock);
+
+
+            var lineRenderer = renderer.GetComponentInChildren<TrailRenderer>();
+            lineRenderer.startColor = lineRenderer.endColor = color;
         }
         _cellTfmAccessArray = new TransformAccessArray(_cellTfms);
 
@@ -200,7 +205,7 @@ public class BoidsManager : MonoBehaviour
         _cellGroupsForceMatrix = new NativeArray<float>(NumGroups * NumGroups, Allocator.Persistent);
         for(int i = 0; i < _cellGroupsForceMatrix.Length; ++i)
         {
-            _cellGroupsForceMatrix[i] = UnityEngine.Random.Range(-0.4f, 1f);
+            _cellGroupsForceMatrix[i] = UnityEngine.Random.Range(-1f, 1f);
         }
 
     }
