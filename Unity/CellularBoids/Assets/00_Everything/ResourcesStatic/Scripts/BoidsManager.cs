@@ -8,8 +8,8 @@ using UnityEngine.Jobs;
 
 public class BoidsManager : MonoBehaviour
 {
-    const int NumCells = 4096;
-    const int NumGroups = 8;
+    const int NumCells = 512;
+    const int NumGroups = 4;
 
     public GameObject PfbCell; // prototype
 
@@ -31,23 +31,70 @@ public class BoidsManager : MonoBehaviour
 
     struct CellularForceJob : IJobParallelFor
     {
+        // cells
         [ReadOnly] public NativeArray<Vector3> position;
         public NativeArray<Vector3> velocity; 
-
         [ReadOnly] public NativeArray<int> groupIndex;
+
+        // global
         [ReadOnly] public NativeArray<float> forceMatrix;
         [ReadOnly] public int numCells;
+        [ReadOnly] public int numGroups;
 
         public float deltaTime;
+
 
         public void Execute(int i)
         {
             // apply force from all
             Vector3 currVel = velocity[i];
+            Vector3 currPos = position[i];
+            int currGroupIndex = groupIndex[i];
 
-            currVel.x = 1f;
-            currVel.y = 0;
-            currVel.z = 0f;
+            float radiusMin = 0.2f; // TODO!!! use ball radius
+            float radiusMax = 10f; // TODO!!! use ball radius
+            float radiusMinSqr = radiusMin * radiusMin;
+            float radiusMaxSqr = radiusMax * radiusMax;
+
+            // TODO: optimize only the cells nearby
+            for (int j = 0; j < NumCells; ++j)
+            {
+                if (i == j)
+                    continue;
+
+
+                Vector3 otherPos = position[j];
+                int otherGroupIndex = groupIndex[j];
+
+                Vector3 dirToOtherPos = otherPos - currPos;
+                Vector3 dirToOtherPosNorm = dirToOtherPos.normalized;
+                float distToOtherPosSqr = Vector3.Dot(dirToOtherPos, dirToOtherPos);
+
+                if (distToOtherPosSqr < radiusMinSqr) // repel
+                {
+                    currVel += -dirToOtherPosNorm * 0.4f;
+                }
+                else if (distToOtherPosSqr < radiusMax)
+                {
+                    const float forceCoeffAttract = 0.002f;
+
+                    float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
+
+                    
+                    Vector3 velocityApplied = dirToOtherPosNorm * cellularForce * forceCoeffAttract;
+                    currVel += velocityApplied;
+
+
+                    // accum forces
+
+                }
+
+            }
+
+            // if outside box, reflect
+
+
+            currVel *= 0.99f;
 
             velocity[i] = currVel;
         }
@@ -64,6 +111,7 @@ public class BoidsManager : MonoBehaviour
         {
             position[i] += velocity[i] * deltaTime;
             transform.position = position[i];
+            transform.rotation = Quaternion.LookRotation(velocity[i]);
         }
     }
 
@@ -77,6 +125,7 @@ public class BoidsManager : MonoBehaviour
         _jobCellularForce = new CellularForceJob()
         {
             numCells = NumCells,
+            numGroups = NumGroups,
             position = _cellPositions,
             velocity = _cellVelocities,
             groupIndex = _cellGroupIndex,
@@ -121,7 +170,7 @@ public class BoidsManager : MonoBehaviour
         _cellVelocities = new NativeArray<Vector3>(NumCells, Allocator.Persistent);
         _cellPositions = new NativeArray<Vector3>(NumCells, Allocator.Persistent);
 
-        float radius = 10f;
+        float radius = 2f;
 
         for( int i = 0; i < NumCells; ++i)
         {
@@ -133,7 +182,7 @@ public class BoidsManager : MonoBehaviour
             _cellObjs[i] = newCell;
             _cellTfms[i] = newCell.transform;
             _cellGroupIndex[i] = newCellGroupIndex;
-            _cellVelocities[i] = Vector3.up;
+            _cellVelocities[i] = (new Vector3(UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius)))* 0.1f;
 
             // rendering
             var renderer = newCell.GetComponent<MeshRenderer>();
@@ -151,7 +200,7 @@ public class BoidsManager : MonoBehaviour
         _cellGroupsForceMatrix = new NativeArray<float>(NumGroups * NumGroups, Allocator.Persistent);
         for(int i = 0; i < _cellGroupsForceMatrix.Length; ++i)
         {
-            _cellGroupsForceMatrix[i] = UnityEngine.Random.Range(-1f, 1f);
+            _cellGroupsForceMatrix[i] = UnityEngine.Random.Range(-0.4f, 1f);
         }
 
     }
