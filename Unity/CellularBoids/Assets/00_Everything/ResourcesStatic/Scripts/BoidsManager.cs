@@ -7,11 +7,12 @@ using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Mathematics;
 using Unity.Burst;
+using UnityEngine.SceneManagement;
 
 public class BoidsManager : MonoBehaviour
 {
     const int NumCells = 2048;
-    const int NumGroups = 8;
+    const int NumGroups = 6;
 
     public GameObject PfbCell; // prototype
 
@@ -26,13 +27,32 @@ public class BoidsManager : MonoBehaviour
     NativeArray<float3> _cellPositions;
     NativeArray<float3> _cellVelocities;
 
-    //
+    public NativeMultiHashMap<int, int> hashMap;
+
     NativeArray<float> _cellGroupsForceMatrix;
 
     PositionUpdateJob _jobPos;
     CellularForceJob _jobCellularForce;
+    HashCellsJob _jobHashMap;
+
     JobHandle _jobHandlePosition;
     JobHandle _jobsHandleCellularForce;
+    JobHandle _jobsHandleHashMap;
+
+    [BurstCompile]
+    struct HashCellsJob : IJobParallelFor
+    {
+        public NativeMultiHashMap<int, int>.Concurrent hashMap;
+        [ReadOnly] public NativeArray<float3> position;
+
+        public void Execute(int i)
+        {
+            //var hash = (int)math.hash(new int3(math.floor(localToWorld.Position / cellRadius)));
+            //hashMap.Add(hash, index);
+
+            hashMap.Add(0, i);
+        }
+    }
 
     [BurstCompile]
     struct CellularForceJob : IJobParallelFor
@@ -81,7 +101,7 @@ public class BoidsManager : MonoBehaviour
                 float distToOtherPosSqr = math.dot(dirToOtherPos, dirToOtherPos);
 
                 // repulsion
-                forceAccum -= dirToOtherPosNorm * Mathf.Exp(-30f * distToOtherPosSqr) * 2f;
+                forceAccum -= dirToOtherPosNorm * Mathf.Exp(-35f * distToOtherPosSqr) * 4f;
 
                 // cellular attraction?
                 float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
@@ -114,9 +134,13 @@ public class BoidsManager : MonoBehaviour
 
         public void Execute(int i, TransformAccess transform)
         {
-            position[i] += velocity[i] * deltaTime;
-            transform.position = position[i];
-            transform.rotation = Quaternion.LookRotation(velocity[i]);
+            float3 vel = velocity[i];
+            float3 pos = position[i] + vel * deltaTime;
+            position[i] = pos;
+            transform.position = pos;
+
+            if (math.lengthsq(vel) > 0.01f)
+                transform.rotation = Quaternion.LookRotation(vel);
         }
     }
 
@@ -127,6 +151,19 @@ public class BoidsManager : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.F5))
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        if (hashMap.IsCreated)
+            hashMap.Dispose();
+        hashMap = new NativeMultiHashMap<int, int>(NumCells, Allocator.TempJob);
+
+        _jobHashMap = new HashCellsJob()
+        {
+            hashMap = hashMap.ToConcurrent(),
+            position = _cellPositions
+        };
+
         _jobCellularForce = new CellularForceJob()
         {
             numCells = NumCells,
@@ -146,7 +183,8 @@ public class BoidsManager : MonoBehaviour
             deltaTime = Time.deltaTime,
         };
 
-        _jobsHandleCellularForce = _jobCellularForce.Schedule(NumCells, 64);
+        _jobsHandleHashMap = _jobHashMap.Schedule(NumCells, 128);
+        _jobsHandleCellularForce = _jobCellularForce.Schedule(NumCells, 128, _jobsHandleHashMap);
         _jobHandlePosition = _jobPos.Schedule(_cellTfmAccessArray, _jobsHandleCellularForce);
     }
 
@@ -162,6 +200,9 @@ public class BoidsManager : MonoBehaviour
         _cellPositions.Dispose();
         _cellGroupsForceMatrix.Dispose();
         _cellTfmAccessArray.Dispose();
+
+        if (hashMap.IsCreated)
+            hashMap.Dispose();
     }
 
     void Setup()
