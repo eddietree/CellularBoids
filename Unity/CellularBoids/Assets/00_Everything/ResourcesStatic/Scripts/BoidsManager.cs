@@ -13,12 +13,13 @@ public class BoidsManager : MonoBehaviour
 
     public GameObject PfbCell; // prototype
 
-    Transform [] _cellTfms;
     TransformAccessArray _cellTfmAccessArray;
+
+    // each cell!
+    Transform [] _cellTfms;
     GameObject [] _cellObjs;
     MeshRenderer[] _cellRenderers;
     MaterialPropertyBlock[] _cellMatProperyBlock;
-
     NativeArray<int> _cellGroupIndex;
     NativeArray<Vector3> _cellPositions;
     NativeArray<Vector3> _cellVelocities;
@@ -45,7 +46,6 @@ public class BoidsManager : MonoBehaviour
 
         public float deltaTime;
 
-
         public void Execute(int i)
         {
             // apply force from all
@@ -65,11 +65,13 @@ public class BoidsManager : MonoBehaviour
             // TODO: optimize only the cells nearby
             for (int j = 0; j < NumCells; ++j)
             {
-                if (i == j)
+                int otherIndex = j;
+
+                if (i == otherIndex)
                     continue;
 
-                Vector3 otherPos = position[j];
-                int otherGroupIndex = groupIndex[j];
+                Vector3 otherPos = position[otherIndex];
+                int otherGroupIndex = groupIndex[otherIndex];
 
                 Vector3 dirToOtherPos = otherPos - currPos;
                 Vector3 dirToOtherPosNorm = dirToOtherPos.normalized;
