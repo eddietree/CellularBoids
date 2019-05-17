@@ -63,11 +63,11 @@
   <ItemGroup>
     <Compile Include="Assets\00_Everything\ResourcesStatic\Scripts\BoidsManager.cs" />
     <None Include="Assets\00_Everything\ResourcesStatic\Materials\Cell.shader" />
-    <Reference Include="Unity.PackageManagerUI.Editor">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.PackageManagerUI.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.CollabProxy.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>

@@ -22,6 +22,8 @@ public class BoidsManager : MonoBehaviour
     NativeArray<int> _cellGroupIndex;
     NativeArray<Vector3> _cellPositions;
     NativeArray<Vector3> _cellVelocities;
+
+    //
     NativeArray<float> _cellGroupsForceMatrix;
 
     PositionUpdateJob _jobPos;
@@ -66,7 +68,6 @@ public class BoidsManager : MonoBehaviour
                 if (i == j)
                     continue;
 
-
                 Vector3 otherPos = position[j];
                 int otherGroupIndex = groupIndex[j];
 
@@ -87,14 +88,13 @@ public class BoidsManager : MonoBehaviour
             float distFromEdge = Mathf.Max(0,edgeRadius - currPos.magnitude);
             forceAccum += -currPos.normalized * Mathf.Exp(-5f * distFromEdge);
 
-
-            // if outside box, reflect
-
-
             Vector3 accel = forceAccum / mass;
 
             currVel += accel * deltaTime;
-            currVel *= 0.9f;
+
+            const float drag = 2f;
+            currVel = currVel * (1f - deltaTime * drag);
+            //currVel *= 0.95f;
 
             velocity[i] = currVel;
         }
@@ -197,7 +197,8 @@ public class BoidsManager : MonoBehaviour
 
 
             var lineRenderer = renderer.GetComponentInChildren<TrailRenderer>();
-            lineRenderer.startColor = lineRenderer.endColor = color;
+            if (lineRenderer != null)
+                lineRenderer.startColor = lineRenderer.endColor = color;
         }
         _cellTfmAccessArray = new TransformAccessArray(_cellTfms);
 
