@@ -5,10 +5,12 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Jobs;
+using Unity.Mathematics;
+using Unity.Burst;
 
 public class BoidsManager : MonoBehaviour
 {
-    const int NumCells = 512;
+    const int NumCells = 2048;
     const int NumGroups = 8;
 
     public GameObject PfbCell; // prototype
@@ -21,8 +23,8 @@ public class BoidsManager : MonoBehaviour
     MeshRenderer[] _cellRenderers;
     MaterialPropertyBlock[] _cellMatProperyBlock;
     NativeArray<int> _cellGroupIndex;
-    NativeArray<Vector3> _cellPositions;
-    NativeArray<Vector3> _cellVelocities;
+    NativeArray<float3> _cellPositions;
+    NativeArray<float3> _cellVelocities;
 
     //
     NativeArray<float> _cellGroupsForceMatrix;
@@ -32,11 +34,12 @@ public class BoidsManager : MonoBehaviour
     JobHandle _jobHandlePosition;
     JobHandle _jobsHandleCellularForce;
 
+    [BurstCompile]
     struct CellularForceJob : IJobParallelFor
     {
         // cells
-        [ReadOnly] public NativeArray<Vector3> position;
-        public NativeArray<Vector3> velocity; 
+        [ReadOnly] public NativeArray<float3> position;
+        public NativeArray<float3> velocity; 
         [ReadOnly] public NativeArray<int> groupIndex;
 
         // global
@@ -49,8 +52,8 @@ public class BoidsManager : MonoBehaviour
         public void Execute(int i)
         {
             // apply force from all
-            Vector3 currVel = velocity[i];
-            Vector3 currPos = position[i];
+            float3 currVel = velocity[i];
+            float3 currPos = position[i];
             int currGroupIndex = groupIndex[i];
 
             const float forceCoeffAttract = 0.2f;
@@ -60,7 +63,7 @@ public class BoidsManager : MonoBehaviour
             float radiusMinSqr = radiusMin * radiusMin;
             float radiusMaxSqr = radiusMax * radiusMax;
 
-            Vector3 forceAccum = Vector3.zero;
+            float3 forceAccum = float3.zero;
 
             // TODO: optimize only the cells nearby
             for (int j = 0; j < NumCells; ++j)
@@ -70,15 +73,15 @@ public class BoidsManager : MonoBehaviour
                 if (i == otherIndex)
                     continue;
 
-                Vector3 otherPos = position[otherIndex];
+                float3 otherPos = position[otherIndex];
                 int otherGroupIndex = groupIndex[otherIndex];
 
-                Vector3 dirToOtherPos = otherPos - currPos;
-                Vector3 dirToOtherPosNorm = dirToOtherPos.normalized;
-                float distToOtherPosSqr = Vector3.Dot(dirToOtherPos, dirToOtherPos);
+                float3 dirToOtherPos = otherPos - currPos;
+                float3 dirToOtherPosNorm = math.normalize(dirToOtherPos);
+                float distToOtherPosSqr = math.dot(dirToOtherPos, dirToOtherPos);
 
                 // repulsion
-                forceAccum -= dirToOtherPosNorm * Mathf.Exp(-30f * distToOtherPosSqr);
+                forceAccum -= dirToOtherPosNorm * Mathf.Exp(-30f * distToOtherPosSqr) * 2f;
 
                 // cellular attraction?
                 float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
@@ -87,14 +90,13 @@ public class BoidsManager : MonoBehaviour
 
             // dist from edge
             float edgeRadius = 4f;
-            float distFromEdge = Mathf.Max(0,edgeRadius - currPos.magnitude);
-            forceAccum += -currPos.normalized * Mathf.Exp(-5f * distFromEdge);
+            float distFromEdge = Mathf.Max(0,edgeRadius - math.length(currPos));
+            forceAccum += -math.normalize(currPos) * Mathf.Exp(-5f * distFromEdge);
 
-            Vector3 accel = forceAccum / mass;
-
+            float3 accel = forceAccum / mass;
             currVel += accel * deltaTime;
 
-            const float drag = 2f;
+            const float drag = 3f;
             currVel = currVel * (1f - deltaTime * drag);
             //currVel *= 0.95f;
 
@@ -102,10 +104,11 @@ public class BoidsManager : MonoBehaviour
         }
     }
 
+    [BurstCompile]
     struct PositionUpdateJob : IJobParallelForTransform
     {
-        public NativeArray<Vector3> position;  // the velocities from AccelerationJob
-        [ReadOnly] public NativeArray<Vector3> velocity;  // the velocities from AccelerationJob
+        public NativeArray<float3> position;  // the velocities from AccelerationJob
+        [ReadOnly] public NativeArray<float3> velocity;  // the velocities from AccelerationJob
 
         public float deltaTime;
 
@@ -169,8 +172,8 @@ public class BoidsManager : MonoBehaviour
         _cellMatProperyBlock = new MaterialPropertyBlock[NumCells];
 
         _cellGroupIndex = new NativeArray<int>(NumCells, Allocator.Persistent);
-        _cellVelocities = new NativeArray<Vector3>(NumCells, Allocator.Persistent);
-        _cellPositions = new NativeArray<Vector3>(NumCells, Allocator.Persistent);
+        _cellVelocities = new NativeArray<float3>(NumCells, Allocator.Persistent);
+        _cellPositions = new NativeArray<float3>(NumCells, Allocator.Persistent);
 
         float radius = 2f;
 
@@ -180,11 +183,13 @@ public class BoidsManager : MonoBehaviour
 
             var newCell = GameObject.Instantiate(PfbCell);
 
-            _cellPositions[i] = new Vector3( UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius));
+            _cellPositions[i] = new float3( UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius));
             _cellObjs[i] = newCell;
             _cellTfms[i] = newCell.transform;
             _cellGroupIndex[i] = newCellGroupIndex;
-            _cellVelocities[i] = (new Vector3(UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius)))* 0.1f;
+            _cellVelocities[i] = (new float3(UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius)))* 0.1f;
+
+            newCell.transform.localScale = Vector3.one * Mathf.Lerp(0.05f, 0.2f, Mathf.PerlinNoise((float)newCellGroupIndex / (float)NumGroups, 1f));
 
             // rendering
             var renderer = newCell.GetComponent<MeshRenderer>();
