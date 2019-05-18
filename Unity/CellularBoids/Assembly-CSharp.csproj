@@ -70,48 +70,6 @@
     <Reference Include="com.unity.multiplayer-hlapi.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/com.unity.multiplayer-hlapi.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.TextMeshPro.Editor">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.PackageManagerUI.Editor">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.CollabProxy.Editor">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="com.unity.multiplayer-weaver.Editor">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/com.unity.multiplayer-weaver.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.XR.LegacyInputHelpers">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEngine.XR.LegacyInputHelpers.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEditor.SpatialTracking">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEditor.SpatialTracking.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.SpatialTracking">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEngine.SpatialTracking.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Analytics.DataPrivacy">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Analytics.DataPrivacy.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEditor.XR.LegacyInputHelpers">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEditor.XR.LegacyInputHelpers.dll</HintPath>
-    </Reference>
-    <Reference Include="com.unity.multiplayer-hlapi.Runtime">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Mathematics.Editor">
-      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Mathematics.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Entities.Properties">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Entities.Properties.dll</HintPath>
     </Reference>
@@ -136,6 +94,9 @@
     <Reference Include="Unity.Scenes.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Scenes.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Mathematics.Extensions">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Mathematics.Extensions.dll</HintPath>
     </Reference>
@@ -145,11 +106,29 @@
     <Reference Include="Unity.Mathematics.Extensions.Hybrid">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.PackageManagerUI.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.PackageManagerUI.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.CollabProxy.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="com.unity.multiplayer-weaver.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/com.unity.multiplayer-weaver.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Entities.BuildUtils">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Entities.BuildUtils.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.XR.LegacyInputHelpers">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEngine.XR.LegacyInputHelpers.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Entities.Hybrid">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Entities.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Properties">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Properties.dll</HintPath>
@@ -166,11 +145,32 @@
     <Reference Include="Unity.Transforms.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Transforms.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEditor.SpatialTracking">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEditor.SpatialTracking.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SpatialTracking">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEngine.SpatialTracking.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Burst.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Burst.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Mathematics.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Mathematics.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Analytics.DataPrivacy">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Analytics.DataPrivacy.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.XR.LegacyInputHelpers">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/UnityEditor.XR.LegacyInputHelpers.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Transforms.Hybrid">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Transforms.Hybrid.dll</HintPath>
+    </Reference>
+    <Reference Include="com.unity.multiplayer-hlapi.Runtime">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.1.0f2/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>

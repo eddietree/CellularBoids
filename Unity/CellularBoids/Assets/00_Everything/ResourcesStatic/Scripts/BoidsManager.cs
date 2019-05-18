@@ -29,7 +29,20 @@ public class BoidsManager : MonoBehaviour
 
     public NativeMultiHashMap<int, int> hashMap;
 
+    // grid stuff
     NativeArray<float> _cellGroupsForceMatrix;
+
+    [Serializable]
+    public struct EnvironmentSettings
+    {
+        public float MaxRadius;
+        public int HashGridSize;
+    }
+    public EnvironmentSettings envSettings = new EnvironmentSettings()
+    {
+        MaxRadius = 4f,
+        HashGridSize = 64,
+    };
 
     PositionUpdateJob _jobPos;
     CellularForceJob _jobCellularForce;
@@ -45,12 +58,14 @@ public class BoidsManager : MonoBehaviour
         public NativeMultiHashMap<int, int>.Concurrent hashMap;
         [ReadOnly] public NativeArray<float3> position;
 
+        public EnvironmentSettings envSettings;
+
         public void Execute(int i)
         {
             //var hash = (int)math.hash(new int3(math.floor(localToWorld.Position / cellRadius)));
             //hashMap.Add(hash, index);
 
-            hashMap.Add(0, i);
+            hashMap.Add(i, i);
         }
     }
 
@@ -67,6 +82,7 @@ public class BoidsManager : MonoBehaviour
         [ReadOnly] public int numCells;
         [ReadOnly] public int numGroups;
 
+        public EnvironmentSettings envSettings;
         public float deltaTime;
 
         public void Execute(int i)
@@ -78,11 +94,6 @@ public class BoidsManager : MonoBehaviour
 
             const float forceCoeffAttract = 0.2f;
             const float mass = 0.5f;
-            float radiusMin = 0.2f; // TODO!!! use ball radius
-            float radiusMax = 10f; // TODO!!! use ball radius
-            float radiusMinSqr = radiusMin * radiusMin;
-            float radiusMaxSqr = radiusMax * radiusMax;
-
             float3 forceAccum = float3.zero;
 
             // TODO: optimize only the cells nearby
@@ -109,16 +120,16 @@ public class BoidsManager : MonoBehaviour
             }
 
             // dist from edge
-            float edgeRadius = 4f;
-            float distFromEdge = Mathf.Max(0,edgeRadius - math.length(currPos));
+            float distFromEdge = Mathf.Max(0, envSettings.MaxRadius - math.length(currPos));
             forceAccum += -math.normalize(currPos) * Mathf.Exp(-5f * distFromEdge);
 
+            // accel
             float3 accel = forceAccum / mass;
             currVel += accel * deltaTime;
 
+            // drag
             const float drag = 3f;
             currVel = currVel * (1f - deltaTime * drag);
-            //currVel *= 0.95f;
 
             velocity[i] = currVel;
         }
@@ -161,7 +172,8 @@ public class BoidsManager : MonoBehaviour
         _jobHashMap = new HashCellsJob()
         {
             hashMap = hashMap.ToConcurrent(),
-            position = _cellPositions
+            position = _cellPositions,
+            envSettings = envSettings
         };
 
         _jobCellularForce = new CellularForceJob()
@@ -173,6 +185,7 @@ public class BoidsManager : MonoBehaviour
             groupIndex = _cellGroupIndex,
             forceMatrix = _cellGroupsForceMatrix,
 
+            envSettings = envSettings,
             deltaTime = Time.deltaTime,
         };
 
