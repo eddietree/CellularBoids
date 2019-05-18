@@ -36,12 +36,12 @@ public class BoidsManager : MonoBehaviour
     public struct EnvironmentSettings
     {
         public float MaxRadius;
-        public int HashGridSize;
+        public int HashGridCount;
     }
     public EnvironmentSettings envSettings = new EnvironmentSettings()
     {
         MaxRadius = 4f,
-        HashGridSize = 64,
+        HashGridCount = 64,
     };
 
     PositionUpdateJob _jobPos;
@@ -57,15 +57,27 @@ public class BoidsManager : MonoBehaviour
     {
         public NativeMultiHashMap<int, int>.Concurrent hashMap;
         [ReadOnly] public NativeArray<float3> position;
-
-        public EnvironmentSettings envSettings;
+        [ReadOnly] public EnvironmentSettings envSettings;
 
         public void Execute(int i)
         {
+            //float gridSize = envSettings.MaxRadius * 2f / (float)envSettings.HashGridCount;
+            //float gridSizeNormalized = 1f / (float)envSettings.HashGridCount;
+
+            float3 pos = position[i];
+            float3 posNormalized = (pos / envSettings.MaxRadius)*0.5f + (new float3(0.5f,0.5f,0.5f)); // from [0,1]
+
+            int3 gridIndex = new int3(
+                math.clamp((int)(posNormalized.x * envSettings.HashGridCount),0, envSettings.HashGridCount-1),
+                math.clamp((int)(posNormalized.y * envSettings.HashGridCount),0, envSettings.HashGridCount-1),
+                math.clamp((int)(posNormalized.z * envSettings.HashGridCount),0, envSettings.HashGridCount-1)
+            );
+
+            var hash = (int)math.hash(gridIndex);
+            hashMap.Add(hash, i);
+
             //var hash = (int)math.hash(new int3(math.floor(localToWorld.Position / cellRadius)));
             //hashMap.Add(hash, index);
-
-            hashMap.Add(i, i);
         }
     }
 
@@ -82,8 +94,9 @@ public class BoidsManager : MonoBehaviour
         [ReadOnly] public int numCells;
         [ReadOnly] public int numGroups;
 
-        public EnvironmentSettings envSettings;
-        public float deltaTime;
+        [ReadOnly] public EnvironmentSettings envSettings;
+        [ReadOnly] public NativeMultiHashMap<int, int>.Concurrent hashMap;
+        [ReadOnly] public float deltaTime;
 
         public void Execute(int i)
         {
@@ -185,6 +198,7 @@ public class BoidsManager : MonoBehaviour
             groupIndex = _cellGroupIndex,
             forceMatrix = _cellGroupsForceMatrix,
 
+            hashMap = hashMap.ToConcurrent(),
             envSettings = envSettings,
             deltaTime = Time.deltaTime,
         };
