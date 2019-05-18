@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 public class BoidsManager : MonoBehaviour
 {
     const int NumCells = 2048;
-    const int NumGroups = 6;
+    const int NumGroups = 16;
 
     public GameObject PfbCell; // prototype
 
@@ -310,7 +310,7 @@ public class BoidsManager : MonoBehaviour
             _cellRenderers[i] = renderer;
             _cellMatProperyBlock[i] = materialBlock;
 
-            var color = Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 1f, 1f);
+            var color = Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 0.8f, 1f);
             materialBlock.SetColor("_Color", color);
             renderer.SetPropertyBlock(materialBlock);
 
