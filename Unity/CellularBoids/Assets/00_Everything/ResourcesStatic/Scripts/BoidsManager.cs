@@ -32,7 +32,6 @@ public class BoidsManager : MonoBehaviour
     // grid stuff
     NativeArray<float> _cellGroupsForceMatrix;
 
-    [Serializable]
     public struct EnvironmentSettings
     {
         public float MaxRadius;
@@ -41,7 +40,7 @@ public class BoidsManager : MonoBehaviour
     public EnvironmentSettings envSettings = new EnvironmentSettings()
     {
         MaxRadius = 4f,
-        HashGridCount = 64,
+        HashGridCount = 8,
     };
 
     PositionUpdateJob _jobPos;
@@ -95,7 +94,7 @@ public class BoidsManager : MonoBehaviour
         [ReadOnly] public int numGroups;
 
         [ReadOnly] public EnvironmentSettings envSettings;
-        [ReadOnly] public NativeMultiHashMap<int, int>.Concurrent hashMap;
+        [ReadOnly] public NativeMultiHashMap<int, int> hashMap;
         [ReadOnly] public float deltaTime;
 
         public void Execute(int i)
@@ -109,8 +108,53 @@ public class BoidsManager : MonoBehaviour
             const float mass = 0.5f;
             float3 forceAccum = float3.zero;
 
-            // TODO: optimize only the cells nearby
-            for (int j = 0; j < NumCells; ++j)
+            float3 currPosNormalized = (currPos / envSettings.MaxRadius) * 0.5f + (new float3(0.5f, 0.5f, 0.5f)); // from [0,1]
+            int3 currGridIndex = new int3(
+                math.clamp((int)(currPosNormalized.x * envSettings.HashGridCount), 0, envSettings.HashGridCount - 1),
+                math.clamp((int)(currPosNormalized.y * envSettings.HashGridCount), 0, envSettings.HashGridCount - 1),
+                math.clamp((int)(currPosNormalized.z * envSettings.HashGridCount), 0, envSettings.HashGridCount - 1)
+            );
+
+            int3 currGridIndexMin = math.clamp(currGridIndex - new int3(1, 1, 1), new int3(0, 0, 0), new int3(envSettings.HashGridCount - 1, envSettings.HashGridCount - 1, envSettings.HashGridCount - 1));
+            int3 currGridIndexMax = math.clamp(currGridIndex + new int3(1, 1, 1), new int3(0, 0, 0), new int3(envSettings.HashGridCount - 1, envSettings.HashGridCount - 1, envSettings.HashGridCount - 1));
+
+            for(int gridX = currGridIndexMin.x; gridX <= currGridIndexMax.x; ++gridX)
+            {
+                for (int gridY = currGridIndexMin.y; gridY <= currGridIndexMax.y; ++gridY)
+                {
+                    for (int gridZ = currGridIndexMin.z; gridZ <= currGridIndexMax.z; ++gridZ)
+                    {
+                        int3 gridIndex = new int3(gridX, gridY, gridZ);
+                        var gridHash = (int)math.hash(gridIndex);
+
+                        bool found = hashMap.TryGetFirstValue(gridHash, out int otherIndex, out NativeMultiHashMapIterator<int> it);
+                        while (found)
+                        {
+                            if (i != otherIndex)
+                            {
+                                float3 otherPos = position[otherIndex];
+                                int otherGroupIndex = groupIndex[otherIndex];
+
+                                float3 dirToOtherPos = otherPos - currPos;
+                                float3 dirToOtherPosNorm = math.normalize(dirToOtherPos);
+                                float distToOtherPosSqr = math.dot(dirToOtherPos, dirToOtherPos);
+
+                                // repulsion
+                                forceAccum -= dirToOtherPosNorm * Mathf.Exp(-35f * distToOtherPosSqr) * 4f;
+
+                                // cellular attraction?
+                                float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
+                                forceAccum += cellularForce * dirToOtherPosNorm * Mathf.Exp(-1f * distToOtherPosSqr) * forceCoeffAttract;
+                            }
+
+                            // next item
+                            found = hashMap.TryGetNextValue(out otherIndex, ref it);
+                        }
+                    }
+                }
+            }
+
+            /*for (int j = 0; j < NumCells; ++j)
             {
                 int otherIndex = j;
 
@@ -130,7 +174,7 @@ public class BoidsManager : MonoBehaviour
                 // cellular attraction?
                 float cellularForce = forceMatrix[currGroupIndex * numGroups + otherGroupIndex];
                 forceAccum += cellularForce * dirToOtherPosNorm * Mathf.Exp(-1f * distToOtherPosSqr) * forceCoeffAttract;
-            }
+            }*/
 
             // dist from edge
             float distFromEdge = Mathf.Max(0, envSettings.MaxRadius - math.length(currPos));
@@ -198,7 +242,7 @@ public class BoidsManager : MonoBehaviour
             groupIndex = _cellGroupIndex,
             forceMatrix = _cellGroupsForceMatrix,
 
-            hashMap = hashMap.ToConcurrent(),
+            hashMap = hashMap,
             envSettings = envSettings,
             deltaTime = Time.deltaTime,
         };
