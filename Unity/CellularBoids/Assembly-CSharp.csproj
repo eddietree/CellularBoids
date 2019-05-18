@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\00_Everything\ResourcesStatic\Scripts\BoidsManager.cs" />
+    <Compile Include="Assets\00_Everything\ResourcesStatic\Scripts\CameraRotation.cs" />
     <None Include="Assets\00_Everything\ResourcesStatic\Materials\Cell.shader" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
