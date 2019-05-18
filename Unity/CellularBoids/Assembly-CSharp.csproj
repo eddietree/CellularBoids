@@ -116,6 +116,9 @@
     <Reference Include="Unity.CollabProxy.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Postprocessing.Editor">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Postprocessing.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="com.unity.multiplayer-weaver.Editor">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/com.unity.multiplayer-weaver.Editor.dll</HintPath>
     </Reference>
@@ -133,6 +136,9 @@
     </Reference>
     <Reference Include="Unity.Properties">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Properties.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Postprocessing.Runtime">
+      <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Postprocessing.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Entities">
       <HintPath>D:/dev/github/CellularBoids/Unity/CellularBoids/Library/ScriptAssemblies/Unity.Entities.dll</HintPath>

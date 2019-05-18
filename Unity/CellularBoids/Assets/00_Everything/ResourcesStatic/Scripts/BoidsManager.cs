@@ -314,11 +314,22 @@ public class BoidsManager : MonoBehaviour
             materialBlock.SetColor("_Color", color);
             renderer.SetPropertyBlock(materialBlock);
 
-
             var lineRenderer = renderer.GetComponentInChildren<TrailRenderer>();
             if (lineRenderer != null)
                 lineRenderer.startColor = lineRenderer.endColor = color;
         }
+
+        // add random lights
+        for(int i = 0; i < 3; ++i)
+        {
+            var cellObj = _cellObjs[UnityEngine.Random.Range(0, _cellObjs.Length)];
+
+            var light = cellObj.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.range = 1.5f;
+            light.intensity = 25f;
+        }
+
         _cellTfmAccessArray = new TransformAccessArray(_cellTfms);
 
         // force matrix
