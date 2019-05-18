@@ -301,7 +301,7 @@ public class BoidsManager : MonoBehaviour
             _cellGroupIndex[i] = newCellGroupIndex;
             _cellVelocities[i] = (new float3(UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius)))* 0.1f;
 
-            newCell.transform.localScale = Vector3.one * Mathf.Lerp(0.05f, 0.2f, Mathf.PerlinNoise((float)newCellGroupIndex / (float)NumGroups, 1f));
+            newCell.transform.localScale = Vector3.one * Mathf.Lerp(0.03f, 0.25f, Mathf.PerlinNoise((float)newCellGroupIndex / (float)NumGroups, 1f));
 
             // rendering
             var renderer = newCell.GetComponent<MeshRenderer>();
