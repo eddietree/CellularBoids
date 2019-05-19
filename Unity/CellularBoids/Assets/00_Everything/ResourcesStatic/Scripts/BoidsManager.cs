@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 public class BoidsManager : MonoBehaviour
 {
     const int NumCells = 2048;
-    const int NumGroups = 16;
+    const int NumGroups = 12;
 
     public GameObject PfbCell; // prototype
 
@@ -32,13 +32,18 @@ public class BoidsManager : MonoBehaviour
     // grid stuff
     NativeArray<float> _cellGroupsForceMatrix;
 
+    [Serializable]
     public struct EnvironmentSettings
     {
-        public float MaxRadius;
-        public int HashGridCount;
+        [Range(0.01f, 1f)] public float Mass;
+        [Range(1f, 10f)] public float Drag;
+        [Range(1f, 10f)] public float MaxRadius;
+        [HideInInspector][NonSerialized] public int HashGridCount;
     }
     public EnvironmentSettings envSettings = new EnvironmentSettings()
     {
+        Mass = 0.5f,
+        Drag = 3f,
         MaxRadius = 4f,
         HashGridCount = 8,
     };
@@ -60,9 +65,6 @@ public class BoidsManager : MonoBehaviour
 
         public void Execute(int i)
         {
-            //float gridSize = envSettings.MaxRadius * 2f / (float)envSettings.HashGridCount;
-            //float gridSizeNormalized = 1f / (float)envSettings.HashGridCount;
-
             float3 pos = position[i];
             float3 posNormalized = (pos / envSettings.MaxRadius)*0.5f + (new float3(0.5f,0.5f,0.5f)); // from [0,1]
 
@@ -74,7 +76,6 @@ public class BoidsManager : MonoBehaviour
 
             var hash = (int)math.hash(gridIndex);
             hashMap.Add(hash, i);
-
             //var hash = (int)math.hash(new int3(math.floor(localToWorld.Position / cellRadius)));
             //hashMap.Add(hash, index);
         }
@@ -105,7 +106,6 @@ public class BoidsManager : MonoBehaviour
             int currGroupIndex = groupIndex[i];
 
             const float forceCoeffAttract = 0.2f;
-            const float mass = 0.5f;
             float3 forceAccum = float3.zero;
 
             float3 currPosNormalized = (currPos / envSettings.MaxRadius) * 0.5f + (new float3(0.5f, 0.5f, 0.5f)); // from [0,1]
@@ -181,11 +181,11 @@ public class BoidsManager : MonoBehaviour
             forceAccum += -math.normalize(currPos) * Mathf.Exp(-5f * distFromEdge);
 
             // accel
-            float3 accel = forceAccum / mass;
+            float3 accel = forceAccum / envSettings.Mass;
             currVel += accel * deltaTime;
 
             // drag
-            const float drag = 3f;
+            float drag = envSettings.Drag;
             currVel = currVel * (1f - deltaTime * drag);
 
             velocity[i] = currVel;
@@ -220,7 +220,10 @@ public class BoidsManager : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.F5))
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            Setup();
+
+        if (Input.GetKeyDown(KeyCode.F6))
+            ResetPositionsOnly();
 
         if (hashMap.IsCreated)
             hashMap.Dispose();
@@ -266,18 +269,49 @@ public class BoidsManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        _cellVelocities.Dispose();
-        _cellGroupIndex.Dispose();
-        _cellPositions.Dispose();
-        _cellGroupsForceMatrix.Dispose();
-        _cellTfmAccessArray.Dispose();
+        CleanUp();
+    }
 
-        if (hashMap.IsCreated)
-            hashMap.Dispose();
+    void CleanUp()
+    {
+        if (_cellObjs != null)
+        {
+            for (int i = 0; i < _cellObjs.Length; ++i)
+            {
+                GameObject.Destroy(_cellObjs[i]);
+            }
+
+            _cellObjs = null;
+        }
+
+        if (_cellVelocities.IsCreated) _cellVelocities.Dispose();
+        if (_cellGroupIndex.IsCreated) _cellGroupIndex.Dispose();
+        if (_cellPositions.IsCreated) _cellPositions.Dispose();
+        if (_cellGroupsForceMatrix.IsCreated) _cellGroupsForceMatrix.Dispose();
+        if (_cellTfmAccessArray.isCreated) _cellTfmAccessArray.Dispose();
+        if (hashMap.IsCreated) hashMap.Dispose();
+    }
+
+    void ResetPositionsOnly()
+    {
+        float radius = envSettings.MaxRadius * 0.5f;
+
+        for (int i = 0; i < NumCells; ++i)
+        {
+            var newPos = new float3(UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius), UnityEngine.Random.Range(-radius, radius));
+            _cellPositions[i] = _cellObjs[i].transform.position = newPos;
+        }
+
+        foreach( var trail in Transform.FindObjectsOfType<TrailRenderer>())
+        {
+            trail.Clear();
+        }
     }
 
     void Setup()
     {
+        CleanUp();
+
         _cellObjs = new GameObject[NumCells];
         _cellTfms = new Transform[NumCells];
         _cellRenderers = new MeshRenderer[NumCells];
@@ -287,7 +321,7 @@ public class BoidsManager : MonoBehaviour
         _cellVelocities = new NativeArray<float3>(NumCells, Allocator.Persistent);
         _cellPositions = new NativeArray<float3>(NumCells, Allocator.Persistent);
 
-        float radius = 2f;
+        float radius = envSettings.MaxRadius * 0.5f;
 
         for( int i = 0; i < NumCells; ++i)
         {
@@ -310,13 +344,18 @@ public class BoidsManager : MonoBehaviour
             _cellRenderers[i] = renderer;
             _cellMatProperyBlock[i] = materialBlock;
 
-            var color = Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 0.8f, 1f);
+            var color = Color.HSVToRGB((float)newCellGroupIndex / (float)NumGroups, 0.75f, 1f);
+            var emission = newCellGroupIndex == 0 ? 2f : 0f;// Mathf.Pow( Mathf.PerlinNoise((float)newCellGroupIndex / (float)NumGroups, 1f), 10f) * 50f;
             materialBlock.SetColor("_Color", color);
+            materialBlock.SetColor("_EmissionColor", Color.white * emission);
             renderer.SetPropertyBlock(materialBlock);
 
             var lineRenderer = renderer.GetComponentInChildren<TrailRenderer>();
             if (lineRenderer != null)
-                lineRenderer.startColor = lineRenderer.endColor = color;
+            {
+                lineRenderer.SetPropertyBlock(materialBlock);
+                //lineRenderer.startColor = lineRenderer.endColor = color;
+            }
         }
 
         // add random lights
@@ -327,7 +366,7 @@ public class BoidsManager : MonoBehaviour
             var light = cellObj.AddComponent<Light>();
             light.type = LightType.Point;
             light.range = 1.5f;
-            light.intensity = 25f;
+            light.intensity = 15f;
         }
 
         _cellTfmAccessArray = new TransformAccessArray(_cellTfms);

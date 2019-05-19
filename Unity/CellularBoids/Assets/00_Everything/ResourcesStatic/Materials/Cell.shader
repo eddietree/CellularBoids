@@ -3,6 +3,7 @@
     Properties
     {
         _Color ("Color", Color) = (1,1,1,1)
+		_EmissionColor("Emission", Color) = (0,0,0,1)
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
@@ -35,6 +36,7 @@
         // #pragma instancing_options assumeuniformscaling
         UNITY_INSTANCING_BUFFER_START(Props)
 			UNITY_DEFINE_INSTANCED_PROP( float4, _Color )
+			UNITY_DEFINE_INSTANCED_PROP( float4, _EmissionColor )
             // put more per-instance properties here
         UNITY_INSTANCING_BUFFER_END(Props)
 
@@ -48,7 +50,7 @@
             // Metallic and smoothness come from slider variables
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-			//o.Emission = fixed4(2,2,2,1);
+			o.Emission = UNITY_ACCESS_INSTANCED_PROP( Props, _EmissionColor );
             o.Alpha = c.a;
         }
         ENDCG

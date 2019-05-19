@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.65087855, g: 0.65087855, b: 0.65087855, a: 1}
+  m_IndirectSpecularColor: {r: 0.4526373, g: 0.4526373, b: 0.4526373, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -553,6 +553,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PfbCell: {fileID: 3329984844153041956, guid: 5fa16b2c25a5ffb4aa049097a20dde87, type: 3}
+  envSettings:
+    Mass: 0.35
+    Drag: 3
+    MaxRadius: 4
 --- !u!4 &1974731310
 Transform:
   m_ObjectHideFlags: 0
