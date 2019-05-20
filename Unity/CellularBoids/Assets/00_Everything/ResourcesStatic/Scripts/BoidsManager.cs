@@ -180,6 +180,10 @@ public class BoidsManager : MonoBehaviour
             float distFromEdge = Mathf.Max(0, envSettings.MaxRadius - math.length(currPos));
             forceAccum += -math.normalize(currPos) * Mathf.Exp(-5f * distFromEdge);
 
+            float3 dirToCenter = -math.normalize(currPos);
+            float3 dirForce = math.cross(dirToCenter, new float3(0f, 1f, 0f));
+            forceAccum += dirForce*0.4f;
+
             // accel
             float3 accel = forceAccum / envSettings.Mass;
             currVel += accel * deltaTime;
